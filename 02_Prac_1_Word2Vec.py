@@ -1,5 +1,18 @@
+import numpy as np
 from collections import defaultdict
-import numpy as np 
+from sklearn.manifold import TSNE
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+from IPython import get_ipython
+
+if get_ipython():
+    print("jupyter envirionment")
+    from tqdm import tqdm_notebook as tqdm
+else:
+    print("command shell envirionment")
+    from tqdm import tqdm
+
 
 class OneHotEncoder() :
   def __init__(self, docs) :
@@ -25,16 +38,8 @@ class OneHotEncoder() :
   def decode(self, v) :
     return self.i2w[v.index(1)]
 
-import numpy as np
-from sklearn.manifold import TSNE
-from tqdm.notebook import tqdm as tqdm
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 
 class Word2Vec() :
-  def __iniit__(self):
-    pass
-
   def _slide_window(self, encoded_docs, win_size = 2) :
     ret = []
 
