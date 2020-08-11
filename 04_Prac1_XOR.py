@@ -10,11 +10,17 @@ else:
     from tqdm import tqdm
 
 class XOR() :
-    def _init_weights(self, h = 2):
-        W1 = np.random.rand(2,h)
+    def _init_weights(self, i, h = 2):
+        W1 = np.random.rand(i,h)
         B1 = np.random.rand(h,1)
         W2 = np.random.rand(h,1)
         B2 = np.random.rand(1,1)
+
+        # W1 = np.array([[0.5, 0], [0.5, 0]])
+        # B1 = np.array([[0.6], [0.6]])
+        # W2 = np.array([[0.7], [0.7]])
+        # B2 = np.array([[0.8]])
+
         return W1, B1, W2, B2
 
     def _affine (self, W, X, B):
@@ -34,7 +40,7 @@ class XOR() :
         Z2 = self._affine(W2, H, B2)
         Y_hat = self._sigmoid(Z2)
 
-        loss = 1./X.shape[1] * np.sum(-1 * (Y * np.log(Y_hat) + (1-Y) * np.log(1-Y_hat)))
+        loss = -1 * 1./X.shape[1] * np.sum((Y * np.log(Y_hat) + (1-Y) * np.log(1-Y_hat)))
         return Z1, H, Z2, Y_hat, loss
 
     def _gradients (self, X, Y, weights):       
@@ -45,7 +51,7 @@ class XOR() :
         
         # BackPropagate: Hidden Layer
         dW2 = np.dot(H, (Y_hat-Y).T)
-        dB2 = 1. / Y.shape[1] * np.sum(Y_hat-Y, axis=1, keepdims=True)    
+        dB2 = 1. / Y.shape[1] * np.sum(Y_hat-Y, axis=1, keepdims=True)
         dH  = np.dot(W2, Y_hat-Y)
 
         # BackPropagate: Input Layer
@@ -55,8 +61,8 @@ class XOR() :
         
         return [dW1, dB1, dW2, dB2], loss
 
-    def optimize (self, X, Y, h = 3, learning_rate = 0.1, epoch = 1000):
-        W = self._init_weights(h)
+    def optimize (self, X, Y, h = 2, learning_rate = 0.1, epoch = 1000):
+        W = self._init_weights(X.shape[0], h)
         loss_trace = []
 
         for i in tqdm(range(epoch), desc="optimize"):
@@ -78,7 +84,6 @@ if __name__ == "__main__" :
 
     xor = XOR()
     learned_weights, loss_trace, predicts = xor.optimize(X, Y, h=2, learning_rate = 0.1, epoch = 100000)
-    #print("weights : {}".format(learned_weights))
     print("Y hat : {}".format(predicts))
     print("predicts : {}".format([1 if y > 0.5 else 0 for y in predicts[0]]))
 
