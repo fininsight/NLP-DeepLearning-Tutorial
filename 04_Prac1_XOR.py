@@ -16,11 +16,6 @@ class XOR() :
         W2 = np.random.rand(h,1)
         B2 = np.random.rand(1,1)
 
-        # W1 = np.array([[0.5, 0], [0.5, 0]])
-        # B1 = np.array([[0.6], [0.6]])
-        # W2 = np.array([[0.7], [0.7]])
-        # B2 = np.array([[0.8]])
-
         return W1, B1, W2, B2
 
     def _affine (self, W, X, B):
@@ -29,7 +24,7 @@ class XOR() :
     def _sigmoid (self, o):
         return 1./(1+np.exp(-1*o))
 
-    def _eval_loss (self, X, Y, weights):
+    def _feedforward(self, X, Y, weights) :
         W1, B1, W2, B2 = weights
         
         # Forward: input Layer
@@ -40,14 +35,15 @@ class XOR() :
         Z2 = self._affine(W2, H, B2)
         Y_hat = self._sigmoid(Z2)
 
-        loss = -1 * 1./X.shape[1] * np.sum((Y * np.log(Y_hat) + (1-Y) * np.log(1-Y_hat)))
-        return Z1, H, Z2, Y_hat, loss
+        return Z1, H, Z2, Y_hat
 
-    def _gradients (self, X, Y, weights):       
+    def _loss (self, Y, Y_hat):
+        loss = -1 * 1./X.shape[1] * np.sum((Y * np.log(Y_hat) + (1-Y) * np.log(1-Y_hat)))
+        return loss
+
+    def _gradients (self, X, Y, weights, Z1, H, Z2, Y_hat ):       
         W1, B1, W2, B2 = weights
         m = X.shape[1]
-        
-        Z1, H, Z2, Y_hat, loss = self._eval_loss(X, Y, [W1, B1, W2, B2])
         
         # BackPropagate: Hidden Layer
         dW2 = np.dot(H, (Y_hat-Y).T)
@@ -59,23 +55,28 @@ class XOR() :
         dW1 = np.dot(X, dZ1.T)
         dB1 = 1. / Y.shape[1] * np.sum(dZ1, axis=1, keepdims=True)
         
-        return [dW1, dB1, dW2, dB2], loss
+        return [dW1, dB1, dW2, dB2]
 
     def optimize (self, X, Y, h = 2, learning_rate = 0.1, epoch = 1000):
         W = self._init_weights(X.shape[0], h)
         loss_trace = []
 
         for i in tqdm(range(epoch), desc="optimize"):
-            d, loss = self._gradients(X, Y, W)
-            for w, d in zip(W, d):
-                w += - learning_rate * d
+            Z1, H, Z2, Y_hat = self._feedforward(X, Y, W)
+            loss = self._loss(Y, Y_hat)
+            gradient = self._gradients(X, Y, W, Z1, H, Z2, Y_hat)
+
+            #가중치 갱신
+            for w, gradient in zip(W, gradient):
+                w += - learning_rate * gradient
             
             if (i % 100 == 0):
                 loss_trace.append(loss)
-            
-        _, _, _, Y_hat, _ = self._eval_loss(X, Y, W) 
+
+        _, _, _, Y_hat = self._feedforward(X, Y, W)
+        r = [1 if y > 0.5 else 0 for y in Y_hat[0]]
         
-        return W,loss_trace, Y_hat
+        return W,loss_trace, Y_hat, r
 
 
 if __name__ == "__main__" :
@@ -83,9 +84,9 @@ if __name__ == "__main__" :
     Y = np.array([[0, 1, 1, 0]])
 
     xor = XOR()
-    learned_weights, loss_trace, predicts = xor.optimize(X, Y, h=2, learning_rate = 0.1, epoch = 100000)
+    learned_weights, loss_trace, predicts, results = xor.optimize(X, Y, h=2, learning_rate = 0.1, epoch = 100000)
     print("Y hat : {}".format(predicts))
-    print("predicts : {}".format([1 if y > 0.5 else 0 for y in predicts[0]]))
+    print("predicts : {}".format(results))
 
     # plt.plot(loss_trace)
     # plt.ylabel('loss')
