@@ -16,6 +16,11 @@ class XOR() :
         W2 = np.random.rand(h,1)
         B2 = np.random.rand(1,1)
 
+        # W1 = np.array([[0.5, 0], [0.5, 0]])
+        # B1 = np.array([[0.6], [0.6]])
+        # W2 = np.array([[0.7], [0.7]])
+        # B2 = np.array([[0.8]])
+        
         return W1, B1, W2, B2
 
     def _affine (self, W, X, B):
@@ -56,6 +61,14 @@ class XOR() :
         dB1 = 1. / Y.shape[1] * np.sum(dZ1, axis=1, keepdims=True)
         
         return [dW1, dB1, dW2, dB2]
+    
+    def _step_func(self, y) :
+        return 1 if y > 0.5 else 0 
+
+    def _accuracy(self, Y, Y_hat) :
+        tmp = [self._step_func(y) for y in Y_hat[0]]
+        return (Y == tmp).mean()
+
 
     def optimize (self, X, Y, h = 2, learning_rate = 0.1, epoch = 1000):
         W = self._init_weights(X.shape[0], h)
@@ -70,7 +83,8 @@ class XOR() :
             for w, gradient in zip(W, gradient):
                 w += - learning_rate * gradient
             
-            if (i % 100 == 0):
+            if (i % 1000 == 0):
+                print("Loss : {}, Accuracy : {}".format(loss, self._accuracy(Y, Y_hat)))
                 loss_trace.append(loss)
 
         _, _, _, Y_hat = self._feedforward(X, Y, W)
@@ -84,11 +98,11 @@ if __name__ == "__main__" :
     Y = np.array([[0, 1, 1, 0]])
 
     xor = XOR()
-    learned_weights, loss_trace, predicts, results = xor.optimize(X, Y, h=2, learning_rate = 0.1, epoch = 100000)
+    learned_weights, loss_trace, predicts, results = xor.optimize(X, Y, h=2, learning_rate = 0.1, epoch = 10000)
     print("Y hat : {}".format(predicts))
     print("predicts : {}".format(results))
 
-    # plt.plot(loss_trace)
-    # plt.ylabel('loss')
-    # plt.xlabel('iterations (per hundreds)')
-    # plt.show()
+    plt.plot(loss_trace)
+    plt.ylabel('loss')
+    plt.xlabel('iterations (per hundreds)')
+    plt.show()
