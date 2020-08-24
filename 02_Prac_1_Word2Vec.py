@@ -58,15 +58,16 @@ class Word2Vec() :
 
   #SGD to backpropagate errors 
   def _backpropagation(self, W1, W2, hidden, predict, center, context, learning_rate) :
-      err = (self._softmax(predict) - context).sum(axis=0)
+    y_hat = self._softmax(predict)
+    err = (y_hat - context).sum(axis=0)
 
-      delta_W2 = np.outer(hidden, err)
-      delta_W1 = np.outer(center, np.dot(W2, err))
+    delta_W2 = np.outer(hidden, err)
+    delta_W1 = np.outer(center, np.dot(W2, err))
 
-      W1 = W1 - learning_rate * delta_W1
-      W2 = W2 - learning_rate * delta_W2
+    W1 = W1 - learning_rate * delta_W1
+    W2 = W2 - learning_rate * delta_W2
 
-      return W1, W2
+    return W1, W2
 
   def embedding(self, docs, method = 'sg', win_size = 2, embedding_size = 5, learning_rate = 0.001, epoch = 10 ) :
     if method == 'sg' :
